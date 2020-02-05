@@ -2,6 +2,7 @@ import traceback
 import getpass
 from pprint import pprint
 import pandas as pd
+import glob
 
 from selenium import webdriver
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
@@ -10,6 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support import expected_conditions as EC
 import sys
 import time
 import argparse
@@ -159,56 +161,114 @@ class CollectPosts(object):
         # Once the full page is loaded, we can start scraping
         with open(self.dump, "a+", newline='', encoding="utf-8") as save_file:
             writer = csv.writer(save_file)
-            links = self.browser.find_elements_by_link_text("See More")
-            for link in links:
-                try:
-                    link.click()
-                except:
-                    pass
-            links_addition = self.browser.find_elements_by_link_text("Continue Reading")
-            for link in links_addition:
-                try:
-                    link.click()
-                except:
-                    pass
-            posts = self.browser.find_elements_by_class_name(
-                "userContentWrapper")
-            poster_names = self.browser.find_elements_by_xpath(
-                "//a[@data-hovercard-referer]")
+# <<<<<<< HEAD
+#             links = self.browser.find_elements_by_link_text("See More")
+#             for link in links:
+#                 try:
+#                     link.click()
+#                 except:
+#                     pass
+#             links_addition = self.browser.find_elements_by_link_text("Continue Reading")
+#             for link in links_addition:
+#                 try:
+#                     link.click()
+#                 except:
+#                     pass
+#             posts = self.browser.find_elements_by_class_name(
+#                 "userContentWrapper")
+#             poster_names = self.browser.find_elements_by_xpath(
+#                 "//a[@data-hovercard-referer]")
+#
+#             for count, post in enumerate(posts):
+#                 try:
+#                     # Creating first CSV row entry with the poster name (eg. "Donald Trump")
+#                     analysis = [poster_names[count].text]
+#                     url=poster_names[count].get_attribute('href')
+#                     print(url)
+#                     user_id=self.create_original_link(url)
+#                     # gender=self.scrape_genger(user_id)
+#                     # print("Gender=====>",gender)
+#                     # analysis.append(poster_names[count].get_attribute('href'))
+#                     # analysis.append(self.scrape_genger(url))
+#                     # Creating a time entry.
+#                     time_element = post.find_element_by_css_selector("abbr")
+#                     utime = time_element.get_attribute("data-utime")
+#                     analysis.append(utime)
+#                     pprint(post)
+#                     # Creating post text entry
+#                     text = post.find_element_by_class_name("userContent").text
+#                     pprint(text)
+#                     # text2=post.find_element_by_class_name('text_exposed_show').text
+#                     # print(text2)
+#                     # status = self.strip(text)
+#                     analysis.append(text)
+#                     print(user_id)
+#                     analysis.append(user_id)
+#                     # gender=self.scrape_genger(user_id)
+#                     # print("Gender=====>",gender)
+#
+#                     # Write row to csv
+#                     writer.writerow(analysis)
+#                 except Exception as e:
+#                     print("type error: " + str(e))
+#                     print(traceback.format_exc())
+# =======
+            posts = self.browser.find_elements_by_class_name("userContentWrapper")
+            # links = self.browser.find_elements_by_link_text("See More")
+            # for link in links:
+            #     try:
+            #         link.click()
+            #     except:
+            #         pass
+            poster_names = self.browser.find_elements_by_xpath("//a[@data-hovercard-referer]")
 
             for count, post in enumerate(posts):
+                # Creating first CSV row entry with the poster name (eg. "Donald Trump")
+                # analysis = [poster_names[count].text]
+                flag = False
+                data = ""
+                continue_reading_author = ""
+                continue_reading_post = ""
                 try:
-                    # Creating first CSV row entry with the poster name (eg. "Donald Trump")
-                    analysis = [poster_names[count].text]
-                    url=poster_names[count].get_attribute('href')
-                    print(url)
-                    user_id=self.create_original_link(url)
-                    # gender=self.scrape_genger(user_id)
-                    # print("Gender=====>",gender)
-                    # analysis.append(poster_names[count].get_attribute('href'))
-                    # analysis.append(self.scrape_genger(url))
-                    # Creating a time entry.
-                    time_element = post.find_element_by_css_selector("abbr")
-                    utime = time_element.get_attribute("data-utime")
-                    analysis.append(utime)
-                    pprint(post)
-                    # Creating post text entry
-                    text = post.find_element_by_class_name("userContent").text
-                    pprint(text)
-                    # text2=post.find_element_by_class_name('text_exposed_show').text
-                    # print(text2)
-                    # status = self.strip(text)
-                    analysis.append(text)
-                    print(user_id)
-                    analysis.append(user_id)
-                    # gender=self.scrape_genger(user_id)
-                    # print("Gender=====>",gender)
+                    link = post.find_element_by_xpath(".//span[@class='text_exposed_link']//a")
+                    link.click()
+                    if (len(self.browser.window_handles) == 2):
+                        self.browser.switch_to.window(window_name=self.browser.window_handles[-1])
+                        flag = True
+                except Exception as e: 
+                    pass
+                if flag:
+                    element = WebDriverWait(self.browser, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, "userContentWrapper")))
+                    post = self.browser.find_element_by_class_name("userContentWrapper")
+                analysis = [post.find_element_by_xpath(".//a[@data-hovercard-referer]").text]
+                print(analysis)
 
-                    # Write row to csv
-                    writer.writerow(analysis)
-                except Exception as e:
-                    print("type error: " + str(e))
-                    print(traceback.format_exc())
+                # Creating a time entry.
+                time_element = post.find_element_by_css_selector("abbr")
+                utime = time_element.get_attribute("data-utime")
+                analysis.append(utime)
+                pprint(post)
+                # Creating post text entry
+                text = post.find_element_by_class_name("userContent").text
+                pprint(text)
+                # text2=post.find_element_by_class_name('text_exposed_show').text
+                # print(text2)
+                # status = self.strip(text)
+                analysis.append(text)
+                if flag:
+                    self.browser.close()
+                    self.browser.switch_to.window(window_name=self.browser.window_handles[0])
+
+                # Write row to csv
+                writer.writerow(analysis)
+# >>>>>>> a12e07c417089cbf819629ac9e33a140799b0ebc
+
+    def get_data_and_close_last_tab(self):
+        if (len(self.driver.window_handles) == 2):
+            self.driver.switch_to.window(window_name=self.driver.window_handles[-1])
+            self.driver.close()
+            self.driver.switch_to.window(window_name=self.driver.window_handles[0])
 
     def collect(self, typ):
         if typ == "groups":
@@ -220,7 +280,7 @@ class CollectPosts(object):
             self.collect_page(self.ids)
             # for iden in self.ids:
             #     self.collect_page(iden)
-        self.browser.close()
+        # self.browser.close()
 
     def safe_find_element_by_id(self, elem_id):
         try:
@@ -264,6 +324,53 @@ class CollectPosts(object):
             exit()
 
 ##### Scrape Gender##########
+class CollectGender:
+    def __init__(self,email,password):
+        self.email=email
+        self.password=password
+        self.browser = webdriver.Firefox(executable_path=GECKODRIVER,
+                                         firefox_binary=FIREFOX_BINARY,
+                                         firefox_profile=PROFILE, )
+
+    def safe_find_element_by_id(self, elem_id):
+        try:
+            return self.browser.find_element_by_id(elem_id)
+        except NoSuchElementException:
+            return None
+    def login(self):
+        try:
+
+            self.browser.get("https://www.facebook.com")
+            self.browser.maximize_window()
+
+            # filling the form
+            self.browser.find_element_by_name('email').send_keys(self.email)
+            self.browser.find_element_by_name('pass').send_keys(self.password)
+
+            # clicking on login button
+            self.browser.find_element_by_id('loginbutton').click()
+            # if your account uses multi factor authentication
+            mfa_code_input = self.safe_find_element_by_id('approvals_code')
+
+            if mfa_code_input is None:
+                return
+
+            mfa_code_input.send_keys(input("Enter MFA code: "))
+            self.browser.find_element_by_id('checkpointSubmitButton').click()
+
+            # there are so many screens asking you to verify things. Just skip them all
+            while self.safe_find_element_by_id('checkpointSubmitButton') is not None:
+                dont_save_browser_radio = self.safe_find_element_by_id('u_0_3')
+                if dont_save_browser_radio is not None:
+                    dont_save_browser_radio.click()
+
+                self.browser.find_element_by_id(
+                    'checkpointSubmitButton').click()
+
+        except Exception as e:
+            print("There's some error in log in.")
+            print(sys.exc_info()[0])
+            exit()
 
     def check_height(self):
         new_height = self.browser.execute_script("return document.body.scrollHeight")
@@ -399,30 +506,42 @@ if __name__ == "__main__":
     email=input("Enter your email/username : ")
     password=getpass.getpass(prompt='Enter Password:')
     url='https://www.facebook.com/MobassharRahman'
-    object=[]
-    for x in f:
-        try:
-            x=x.split()
-            print(x)
-            type=int(x[0])
-            group_name=x[1]
-            depth=100
-            file_name=file_dir+group_name + ".csv"
-            print(type,group_name,depth)
-            C = CollectPosts(ids=group_name, corpus_file=file_name, depth=depth)
-            C.login(email, password)
-            # user_id = C.create_original_link(url)
-            # g=C.scrape_genger(user_id)
-            # print("grnder:::",g)
-            C.collect("groups")
-            print("collection done from ", group_name)
-            object.append(C)
-            C.browser.close()
-            del C
-            # del C
-        except Exception as e:
-            print("type error: " + str(e))
-            print(traceback.format_exc())
+    scraper=CollectGender(email,password)
+    scraper.login()
+    files=glob.glob(file_dir+"/*.csv")
+    for file in files:
+        df = pd.read_csv(file)
+        print(file)
+        scraper.retrive_gender(df)
+        # print(df['profileLink'])
+
+    # C.login(email, password)
+    # C.retrive_gender(df)
+    # C.browser.quit()
+    # object=[]
+    # for x in f:
+    #     try:
+    #         x=x.split()
+    #         print(x)
+    #         type=int(x[0])
+    #         group_name=x[1]
+    #         depth=100
+    #         file_name=file_dir+group_name + ".csv"
+    #         print(type,group_name,depth)
+    #         C = CollectPosts(ids=group_name, corpus_file=file_name, depth=depth)
+    #         C.login(email, password)
+    #         # user_id = C.create_original_link(url)
+    #         # g=C.scrape_genger(user_id)
+    #         # print("grnder:::",g)
+    #         C.collect("groups")
+    #         print("collection done from ", group_name)
+    #         object.append(C)
+    #         C.browser.close()
+    #         del C
+    #         # del C
+    #     except Exception as e:
+    #         print("type error: " + str(e))
+    #         print(traceback.format_exc())
     #
     # while True:
     #     try:
@@ -439,12 +558,12 @@ if __name__ == "__main__":
     #             # g=C.scrape_genger(user_id)
     #             # print("grnder:::",g)
     #             C.collect("groups")
-    #             # df=pd.read_csv(file_name)
-    #             # print(df.head())
-    #             # print(df['profileLink'])
-    #             # C.login(email, password)
-    #             # C.retrive_gender(df)
-    #             # C.browser.quit()
+    #             df=pd.read_csv(file_name)
+    #             print(df.head())
+    #             print(df['profileLink'])
+    #             C.login(email, password)
+    #             C.retrive_gender(df)
+    #             C.browser.quit()
     #             # for link in df['profileLink']:
     #             #     user_id = C.create_original_link(str(link))
     #             #     g=C.scrape_genger(user_id)
